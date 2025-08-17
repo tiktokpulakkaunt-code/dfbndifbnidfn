@@ -1,0 +1,97 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    
+    "users": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId && (!newData.hasChild('authKey') || newData.child('authKey').val() === data.child('authKey').val()) && (!newData.hasChild('referredBy') || (!data.exists() || (!data.hasChild('referredBy') && (!data.hasChild('balance') || data.child('balance').val() === 0))))",
+        ".validate": "newData.hasChildren(['authKey'])",
+        
+        "balance": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        
+        "authKey": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        
+        "firstName": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        
+        "lastName": {
+          ".validate": "newData.isString()"
+        },
+        
+        "avatar_url": {
+          ".validate": "newData.isString()"
+        },
+        
+        "referredBy": {
+          ".validate": "newData.isString() && newData.val() !== $userId && root.child('users').child(newData.val()).exists() && (!data.exists() || !data.hasChild('referredBy'))"
+        },
+        
+        "createdAt": {
+          ".validate": "newData.isNumber() && (!data.exists() || data.val() === newData.val())"
+        },
+        
+        "lastActive": {
+          ".validate": "newData.isNumber()"
+        },
+        
+        "$other": {
+          ".validate": "newData.isString() || newData.isNumber() || newData.isBoolean()"
+        }
+      }
+    },
+    
+    "referralLogs": {
+      "$logId": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === newData.child('referrerId').val() && newData.hasChildren(['referrerId', 'referredUserId', 'timestamp'])",
+        
+        "referrerId": {
+          ".validate": "newData.isString()"
+        },
+        
+        "referredUserId": {
+          ".validate": "newData.isString()"
+        },
+        
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        },
+        
+        "bonusAmount": {
+          ".validate": "newData.isNumber() && newData.val() > 0"
+        },
+        
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    
+    "config": {
+      ".read": "auth != null",
+      ".write": false,
+      
+      "ucPackages": {
+        ".read": "auth != null",
+        ".indexOn": ["amount"]
+      },
+      
+      "botToken": {
+        ".read": "auth != null"
+      },
+      
+      "botUsername": {
+        ".read": "auth != null"
+      }
+    },
+    
+    ".indexOn": ["referredBy", "createdAt", "lastActive"]
+  }
+}
